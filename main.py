@@ -23,6 +23,11 @@ STATUS_TEXT_COLOR = (255, 180, 70)
 Vector2 = pygame.math.Vector2
 
 
+def vector_to_int_pair(vec: "Vector2") -> Tuple[int, int]:
+    """Return a rounded integer pair for pygame APIs expecting pixel centers."""
+    return (int(round(vec.x)), int(round(vec.y)))
+
+
 def clamp(value: float, minimum: float, maximum: float) -> float:
     return max(min(value, maximum), minimum)
 
@@ -165,7 +170,7 @@ class NPC(Hackable):
 
     def draw(self, surface: pygame.Surface, highlighted: bool = False) -> None:
         sprite = self.distracted_sprite if self.distracted else self.base_sprite
-        sprite_rect = sprite.get_rect(center=self.position)
+        sprite_rect = sprite.get_rect(center=vector_to_int_pair(self.position))
         surface.blit(sprite, sprite_rect)
 
         if self.distracted:
@@ -173,11 +178,15 @@ class NPC(Hackable):
             glow_radius = int(22 * pulse)
             glow_surface = pygame.Surface((glow_radius * 2, glow_radius * 2), pygame.SRCALPHA)
             pygame.draw.circle(glow_surface, (255, 240, 120, 60), (glow_radius, glow_radius), glow_radius)
-            glow_rect = glow_surface.get_rect(center=self.position + Vector2(10, -6))
+            glow_rect = glow_surface.get_rect(
+                center=vector_to_int_pair(self.position + Vector2(10, -6))
+            )
             surface.blit(glow_surface, glow_rect)
 
         if highlighted:
-            pygame.draw.circle(surface, HIGHLIGHT_COLOR, self.position, 28, 3)
+            pygame.draw.circle(
+                surface, HIGHLIGHT_COLOR, vector_to_int_pair(self.position), 28, 3
+            )
 
     def _create_sprite(self, base_color: Tuple[int, int, int]) -> pygame.Surface:
         sprite = pygame.Surface((42, 48), pygame.SRCALPHA)
@@ -215,7 +224,7 @@ class Player:
         self.position.y = clamp(self.position.y, 16, SCREEN_HEIGHT - 16)
 
     def draw(self, surface: pygame.Surface) -> None:
-        sprite_rect = self.sprite.get_rect(center=self.position)
+        sprite_rect = self.sprite.get_rect(center=vector_to_int_pair(self.position))
         surface.blit(self.sprite, sprite_rect)
 
     def _create_sprite(self) -> pygame.Surface:
